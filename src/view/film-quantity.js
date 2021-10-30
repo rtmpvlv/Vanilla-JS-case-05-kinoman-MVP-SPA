@@ -1,6 +1,8 @@
+import { getRandomInteger } from '../mock-data/utils-and-const';
+
 const createFilmsQuantityTemplate = () => (
   `
-    <p>130 291 movies inside</p>
+    <p>${getRandomInteger(10000, 1000000)} movies inside</p>
   `
 );
 
