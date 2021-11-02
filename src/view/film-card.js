@@ -1,5 +1,7 @@
+/* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
 import { convertDuration } from '../mock-data/utils-and-const';
+import { createElement } from '../utils';
 
 const createFilmsCardTemplate = (film) => {
   const { comments, filmInfo } = film;
@@ -24,4 +26,24 @@ const createFilmsCardTemplate = (film) => {
   `;
 };
 
-export default createFilmsCardTemplate;
+export default class FilmCard {
+  constructor(film) {
+    this._element = null;
+    this._film = film;
+  }
+
+  getTemplate() {
+    return createFilmsCardTemplate(this._film);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

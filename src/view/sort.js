@@ -1,11 +1,26 @@
-const createSortTemplate = () => (
-  `
+/* eslint-disable no-underscore-dangle */
+import { createElement } from '../utils';
+
+export default class Sort {
+  constructor() {
+    this._element = null;
+    this._markup = `
     <ul class="sort">
       <li><a href="#" class="sort__button sort__button--active">Sort by default</a></li>
       <li><a href="#" class="sort__button">Sort by date</a></li>
       <li><a href="#" class="sort__button">Sort by rating</a></li>
     </ul>
-  `
-);
+  `;
+  }
 
-export default createSortTemplate;
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this._markup);
+    }
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
