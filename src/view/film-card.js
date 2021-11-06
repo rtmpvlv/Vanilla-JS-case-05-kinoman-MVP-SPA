@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
 import { convertDuration } from '../mock-data/utils-and-const';
-import { createElement } from '../utils';
+import Abstract from './abstract';
 
 const createFilmsCardTemplate = (film) => {
   const { comments, filmInfo } = film;
@@ -26,24 +26,26 @@ const createFilmsCardTemplate = (film) => {
   `;
 };
 
-export default class FilmCard {
+export default class FilmCard extends Abstract {
   constructor(film) {
-    this._element = null;
+    super();
     this._film = film;
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
     return createFilmsCardTemplate(this._film);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-    return this._element;
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.editClick();
   }
 
-  removeElement() {
-    this._element = null;
+  setEditClickHandler(callback) {
+    this._callback.editClick = callback;
+    this.getElement().querySelector('.film-card img').addEventListener('click', this._editClickHandler);
+    this.getElement().querySelector('.film-card h3').addEventListener('click', this._editClickHandler);
+    this.getElement().querySelector('.film-card a').addEventListener('click', this._editClickHandler);
   }
 }

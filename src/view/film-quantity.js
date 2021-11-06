@@ -1,23 +1,16 @@
 /* eslint-disable no-underscore-dangle */
 import { getRandomInteger } from '../mock-data/utils-and-const';
-import { createElement } from '../utils';
+import Abstract from './abstract';
 
-export default class FilmQuantity {
+export default class FilmQuantity extends Abstract {
   constructor() {
-    this._element = null;
+    super();
     this._markup = `
     <p>${getRandomInteger(10000, 1000000)} movies inside</p>
   `;
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this._markup);
-    }
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
+  getTemplate() {
+    return this._markup;
   }
 }

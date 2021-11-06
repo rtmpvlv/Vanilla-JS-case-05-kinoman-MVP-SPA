@@ -1,9 +1,9 @@
 /* eslint-disable no-underscore-dangle */
-import { createElement } from '../utils';
+import Abstract from './abstract';
 
-export default class Profile {
+export default class Profile extends Abstract {
   constructor() {
-    this._element = null;
+    super();
     this._markup = `
     <section class="header__profile profile">
       <p class="profile__rating">Movie Buff</p>
@@ -12,14 +12,7 @@ export default class Profile {
   `;
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this._markup);
-    }
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
+  getTemplate() {
+    return this._markup;
   }
 }

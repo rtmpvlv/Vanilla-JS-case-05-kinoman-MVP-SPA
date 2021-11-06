@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
 import { convertDuration } from '../mock-data/utils-and-const';
-import { createElement } from '../utils';
+import Abstract from './abstract';
 
 const createPopupTemplate = (film) => {
   const { comments, filmInfo, userDetails } = film;
@@ -137,24 +137,24 @@ const createPopupTemplate = (film) => {
   `;
 };
 
-export default class Popup {
+export default class Popup extends Abstract {
   constructor(film) {
-    this._element = null;
+    super();
     this._film = film;
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
     return createPopupTemplate(this._film);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-    return this._element;
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.editClick();
   }
 
-  removeElement() {
-    this._element = null;
+  setEditClickHandler(callback) {
+    this._callback.editClick = callback;
+    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._editClickHandler);
   }
 }

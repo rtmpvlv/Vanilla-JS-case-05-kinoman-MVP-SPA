@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import ProfileView from './view/profile';
 import MenuView from './view/menu';
 import SortView from './view/sort';
@@ -10,7 +9,7 @@ import FilmQuantityView from './view/film-quantity';
 import PopupView from './view/popup';
 import getMovieData from './mock-data/mock-data';
 import setFiltering from './mock-data/filter';
-import { render, RenderPosition } from './utils';
+import { render, RenderPosition } from './utils/render';
 
 const FILMCARDS_QUANTITY = 20;
 const EXTRA_FILMCARDS_QUANTITY = 4;
@@ -25,7 +24,7 @@ const filters = setFiltering(filmsList);
 const header = document.querySelector('.header');
 const mainContent = document.querySelector('.main');
 
-render(mainContent, new MenuView(filters).getElement(), RenderPosition.AFTERBEGIN);
+render(mainContent, new MenuView(filters), RenderPosition.AFTERBEGIN);
 
 const renderView = (films, extraFilms) => {
   const filmsSection = document.createElement('section');
@@ -33,13 +32,13 @@ const renderView = (films, extraFilms) => {
 
   if (!films || films.length === 0) {
     mainContent.appendChild(filmsSection);
-    render(filmsSection, new NoMoviesView().getElement(), RenderPosition.BEFOREEND);
+    render(filmsSection, new NoMoviesView(), RenderPosition.BEFOREEND);
     render(document.querySelector('.footer__statistics'), '0 movies inside', RenderPosition.BEFOREEND);
   } else {
-    render(header, new ProfileView().getElement(), RenderPosition.BEFOREEND);
-    render(mainContent, new SortView().getElement(), RenderPosition.BEFOREEND);
+    render(header, new ProfileView(), RenderPosition.BEFOREEND);
+    render(mainContent, new SortView(), RenderPosition.BEFOREEND);
     mainContent.appendChild(filmsSection);
-    render(filmsSection, new FilmsListView().getElement(), RenderPosition.BEFOREEND);
+    render(filmsSection, new FilmsListView(), RenderPosition.BEFOREEND);
 
     const filmsListContainer = document.querySelector('.films-list__container');
     const showMoreButton = document.querySelector('.films-list__show-more');
@@ -53,15 +52,15 @@ const renderView = (films, extraFilms) => {
         if (evt.key === 'Escape' || evt.key === 'Esc') {
           evt.preventDefault();
           document.body.classList.remove('hide-overflow');
-          document.body.removeChild(popup.getElement());
           document.removeEventListener('keydown', keyPressed);
+          document.body.removeChild(popup.getElement());
         }
       };
 
       const closePopup = () => {
         document.body.classList.remove('hide-overflow');
-        document.body.removeChild(popup.getElement());
         document.removeEventListener('keydown', keyPressed);
+        document.body.removeChild(popup.getElement());
       };
 
       const openPopup = () => {
@@ -70,12 +69,10 @@ const renderView = (films, extraFilms) => {
         document.addEventListener('keydown', keyPressed);
       };
 
-      filmCard.getElement().querySelector('.film-card img').addEventListener('click', openPopup);
-      filmCard.getElement().querySelector('.film-card h3').addEventListener('click', openPopup);
-      filmCard.getElement().querySelector('.film-card a').addEventListener('click', openPopup);
-      popup.getElement().querySelector('.film-details__close-btn').addEventListener('click', closePopup);
+      filmCard.setEditClickHandler(openPopup);
+      popup.setEditClickHandler(closePopup);
 
-      render(place, filmCard.getElement(), RenderPosition.BEFOREEND);
+      render(place, filmCard, RenderPosition.BEFOREEND);
     };
 
     const renderFiveFilmCards = (counter) => {
@@ -99,8 +96,8 @@ const renderView = (films, extraFilms) => {
       showMoreButton.addEventListener('click', rerenderFilmCards);
     }
 
-    render(filmsSection, new ExtraFilmListView().getElement(), RenderPosition.BEFOREEND);
-    render(filmsSection, new ExtraFilmListView().getElement(), RenderPosition.BEFOREEND);
+    render(filmsSection, new ExtraFilmListView(), RenderPosition.BEFOREEND);
+    render(filmsSection, new ExtraFilmListView(), RenderPosition.BEFOREEND);
     const extraSection1 = filmsSection.querySelector('.films-list--extra:nth-child(2)');
     const extraSection2 = filmsSection.querySelector('.films-list--extra:last-child');
     extraSection2.querySelector('h2').textContent = 'Most commented';
@@ -112,7 +109,7 @@ const renderView = (films, extraFilms) => {
     renderFilmCard(filmsListContainerExtra2, extraFilms[3]);
 
     const footerStatistics = document.querySelector('.footer__statistics');
-    render(footerStatistics, new FilmQuantityView().getElement(), RenderPosition.BEFOREEND);
+    render(footerStatistics, new FilmQuantityView(), RenderPosition.BEFOREEND);
   }
 };
 renderView(filmsList, extraFilmList);

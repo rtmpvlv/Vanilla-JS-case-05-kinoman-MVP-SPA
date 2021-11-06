@@ -1,9 +1,9 @@
 /* eslint-disable no-underscore-dangle */
-import { createElement } from '../utils';
+import Abstract from './abstract';
 
-export default class ExtraFilmList {
+export default class ExtraFilmList extends Abstract {
   constructor() {
-    this._element = null;
+    super();
     this._markup = `
     <section class="films-list films-list--extra">
       <h2 class="films-list__title">Top rated</h2>
@@ -12,14 +12,7 @@ export default class ExtraFilmList {
     </section>`;
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this._markup);
-    }
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
+  getTemplate() {
+    return this._markup;
   }
 }

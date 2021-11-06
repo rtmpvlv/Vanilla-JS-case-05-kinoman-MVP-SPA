@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import { createElement } from '../utils';
+import Abstract from './abstract';
 
 const createFilterItemTemplate = ((array) => array.map(({ name, count }) => `<a href="#watchlist" class="main-navigation__item">${name} <span class="main-navigation__item-count">${count}</span></a>`).join(''));
 
@@ -12,24 +12,13 @@ const createMenuTemplate = (filter) => (`<nav class="main-navigation">
     </nav>`
 );
 
-export default class Menu {
+export default class Menu extends Abstract {
   constructor(filters) {
-    this._element = null;
+    super();
     this._filters = filters;
   }
 
   getTemplate() {
     return createMenuTemplate(this._filters);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }
