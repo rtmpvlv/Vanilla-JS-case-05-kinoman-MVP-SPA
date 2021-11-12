@@ -32,7 +32,7 @@ const generateDescriptions = () => {
 const generateCommentsList = () => {
   const arr = [];
   const getComments = () => ({
-    id: getRandomInteger(1, 100000),
+    id: getRandomInteger(1, 100000000),
     author: getRandomArrayElement(CommentsAuthors),
     comment: getRandomArrayElement(Comments),
     date: generateDate(60, 0),

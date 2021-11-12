@@ -6,7 +6,7 @@ export const RenderPosition = {
   BEFOREEND: 'beforeend',
 };
 
-export const render = (container, element, place) => {
+export const render = (container, element, place = RenderPosition.BEFOREEND) => {
   let containerElement = container;
   let injectedElement = element;
 
