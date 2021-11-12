@@ -9,6 +9,8 @@ import ExtraFilmSectionView from '../view/extra-film-section';
 import { render, RenderPosition, remove } from '../utils/render';
 import Film from './film';
 import { updateItem } from '../mock-data/utils-and-const';
+import SortType from '../utils/const';
+import { sortByDate, sortByRating } from '../utils/sort';
 
 const FILMCARDS_PER_CLICK = 5;
 let RENDERED_FILMCARDS_COUNTER = 0;
@@ -17,7 +19,9 @@ export default class FilmList {
   constructor(mainContainer, films, extraFilms) {
     this._mainContainer = mainContainer;
     this._films = films.slice();
+    this._sourcedFilms = films.slice();
     this._extraFilms = extraFilms.slice();
+    this._currentSortType = SortType.DEFAULT;
 
     this._sortView = new SortView();
     this._filmSection = new FilmSectionView();
@@ -31,6 +35,7 @@ export default class FilmList {
     this._renderMoreFilmCards = this._renderMoreFilmCards.bind(this);
     this._changeData = this._changeData.bind(this);
     this._changeMode = this._changeMode.bind(this);
+    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
   }
 
   renderView() {
@@ -65,6 +70,7 @@ export default class FilmList {
 
   _renderSort() {
     render(this._mainContainer, this._sortView);
+    this._sortView.setSortTypeChangeHandler(this._handleSortTypeChange);
   }
 
   _renderFilmCard(film, filmContainer) {
@@ -115,18 +121,48 @@ export default class FilmList {
   }
 
   _clearFilmSection() {
-    this._filmPresenter.forEach((item) => item.destroy);
+    this._filmPresenter.forEach((item) => item.destroy());
     this._filmPresenter.clear();
     RENDERED_FILMCARDS_COUNTER = 0;
     remove(this._showMoreButton);
+    remove(this._extraFilmsSection1);
+    remove(this._extraFilmsSection2);
   }
 
   _changeData(updatedFilm) {
     this._points = updateItem(this._films, updatedFilm);
+    this._sourcedFilms = updateItem(this._sourcedFilms, updatedFilm);
     this._filmPresenter.get(updatedFilm.id).renderFilmCard(updatedFilm);
   }
 
   _changeMode() {
     this._filmPresenter.forEach((item) => item.resetView());
+  }
+
+  _sortFilms(sortType) {
+    switch (sortType) {
+      case SortType.DATE:
+        this._films.sort(sortByDate);
+        break;
+      case SortType.RATING:
+        this._films.sort(sortByRating);
+        break;
+      default:
+        this._films = this._sourcedFilms.slice();
+    }
+    this._currentSortType = sortType;
+  }
+
+  _handleSortTypeChange(sortType) {
+    if (this._currentSortType === sortType || !sortType) {
+      return;
+    }
+    this._sortFilms(sortType);
+    this._clearFilmSection();
+    this.renderView();
+    // this._renderFiveFilmCards(RENDERED_FILMCARDS_COUNTER);
+    // if (this._films.length > FILMCARDS_PER_CLICK) {
+    //   this._renderShowMoreButton();
+    // }
   }
 }
