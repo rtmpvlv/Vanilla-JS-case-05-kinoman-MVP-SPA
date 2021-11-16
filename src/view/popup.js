@@ -1,13 +1,15 @@
+/* eslint-disable prefer-object-spread */
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
-import { convertDuration } from '../mock-data/utils-and-const';
-import Abstract from './abstract';
+import { convertDuration, Emotions } from '../mock-data/utils-and-const';
+import { render } from '../utils/render';
+import Smart from './smart';
+import humanizeDate from '../utils/popup';
 
-const createPopupTemplate = (film) => {
-  const { comments, filmInfo, userDetails } = film;
+const createPopupTemplate = (data) => {
+  const { comments, filmInfo, userDetails } = data;
 
   const renderGenres = (genresList) => genresList.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
-
   const renderComments = (array) => array.map((item) => `
     <li class="film-details__comment">
       <span class="film-details__comment-emoji">
@@ -17,7 +19,7 @@ const createPopupTemplate = (film) => {
         <p class="film-details__comment-text">${item.comment}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${item.author}</span>
-          <span class="film-details__comment-day">${dayjs(item.date).format('YYYY/MM/DD HH:mm')}</span>
+          <span class="film-details__comment-day">${humanizeDate(item.date)}</span>
           <button class="film-details__comment-delete">Delete</button>
         </p>
       </div>
@@ -137,18 +139,26 @@ const createPopupTemplate = (film) => {
   `;
 };
 
-export default class Popup extends Abstract {
+export default class Popup extends Smart {
   constructor(film) {
     super();
-    this._film = film;
+    this._data = Popup.parseFormToData(film);
     this._popupClickHandler = this._popupClickHandler.bind(this);
     this._watchlistClickHandler = this._watchlistClickHandler.bind(this);
     this._asWatchedClickHandler = this._asWatchedClickHandler.bind(this);
     this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
+    this._emojiChangeHandler = this._emojiChangeHandler.bind(this);
+    this._commentInputHandler = this._commentInputHandler.bind(this);
+
+    this._setInnerHandlers();
   }
 
   getTemplate() {
-    return createPopupTemplate(this._film);
+    return createPopupTemplate(this._data);
+  }
+
+  reset(film) {
+    this.updateData(Popup.parseFormToData(film));
   }
 
   _popupClickHandler(evt) {
@@ -189,5 +199,58 @@ export default class Popup extends Abstract {
   setFavoriteClickHandler(callback) {
     this._callback.favoriteClick = callback;
     this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteClickHandler);
+  }
+
+  restoreHandlers() {
+    this._setInnerHandlers();
+    this.setPopupClickHandler(this._callback.popupClick);
+    this.setWatchlistClickHandler(this._callback.watchlistClick);
+    this.setAsWatchedClickHandler(this._callback.asWatchedClick);
+    this.setFavoriteClickHandler(this._callback.favoriteClick);
+  }
+
+  static parseFormToData(point) {
+    return Object.assign({}, point);
+  }
+
+  static parseDataToForm(data) {
+    return Object.assign({}, data);
+  }
+
+  _setInnerHandlers() {
+    this.getElement()
+      .querySelector('.film-details__emoji-list')
+      .addEventListener('click', this._emojiChangeHandler);
+    this.getElement()
+      .querySelector('.film-details__comment-input')
+      .addEventListener('input', this._commentInputHandler);
+  }
+
+  _commentInputHandler(evt) {
+    evt.preventDefault();
+    this.updateData({
+      newComment: evt.target.value,
+    }, true);
+  }
+
+  _emojiChangeHandler(evt) {
+    evt.preventDefault();
+    if (evt.target.tagName === 'IMG') {
+      this.updateData({
+        emoji: evt.target,
+      });
+    }
+    this.getElement().scrollTo(0, 1000);
+    this._renderEmojiPic();
+  }
+
+  _renderEmojiPic() {
+    Emotions.forEach((item) => {
+      if (this._data.emoji.src.includes(item)) {
+        this._data.emoji.style.width = '55px';
+        this._data.emoji.style.height = '55px';
+        render(this.getElement().querySelector('.film-details__add-emoji-label'), this._data.emoji);
+      }
+    });
   }
 }

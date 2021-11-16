@@ -6,7 +6,12 @@ import NoMoviesView from '../view/no-movies';
 import SortView from '../view/sort';
 import ShowMoreButtonView from '../view/show-more-button';
 import ExtraFilmSectionView from '../view/extra-film-section';
-import { render, RenderPosition, remove } from '../utils/render';
+import {
+  render,
+  RenderPosition,
+  remove,
+  replace
+} from '../utils/render';
 import Film from './film';
 import { updateItem } from '../mock-data/utils-and-const';
 import SortType from '../utils/const';
@@ -157,12 +162,17 @@ export default class FilmList {
     if (this._currentSortType === sortType || !sortType) {
       return;
     }
+    this._sortViewRefresh();
     this._sortFilms(sortType);
     this._clearFilmSection();
     this.renderView();
-    // this._renderFiveFilmCards(RENDERED_FILMCARDS_COUNTER);
-    // if (this._films.length > FILMCARDS_PER_CLICK) {
-    //   this._renderShowMoreButton();
-    // }
+  }
+
+  _sortViewRefresh() {
+    const previousSortView = this._sortView;
+    this._sortView = new SortView();
+    replace(this._sortView, previousSortView);
+    this._sortView.setSortTypeChangeHandler(this._handleSortTypeChange);
+    remove(previousSortView);
   }
 }

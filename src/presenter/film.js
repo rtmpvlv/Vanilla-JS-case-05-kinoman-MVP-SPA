@@ -46,6 +46,7 @@ export default class Film {
   _openPopup() {
     document.body.classList.add('hide-overflow');
     this._changeMode();
+    this._popup._setInnerHandlers();
     this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
     this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
     this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
