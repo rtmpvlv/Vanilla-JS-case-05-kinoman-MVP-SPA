@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
-import { convertDuration } from '../mock-data/utils-and-const';
+import { convertDuration } from '../utils/popup';
 import Abstract from './abstract';
 
 const createFilmsCardTemplate = (film) => {
@@ -22,15 +22,15 @@ const createFilmsCardTemplate = (film) => {
         <button class="film-card__controls-item film-card__controls-item--mark-as-watched ${userDetails.alreadyWatched ? 'film-card__controls-item--active' : ''}" type="button">Mark as watched</button>
         <button class="film-card__controls-item film-card__controls-item--favorite ${userDetails.favorite ? 'film-card__controls-item--active' : ''}" type="button">Mark as favorite</button>
       </div>
-    </article>
-  `;
+    </article>`;
 };
 
 export default class FilmCard extends Abstract {
   constructor(film) {
     super();
     this._film = film;
-    this._editClickHandler = this._editClickHandler.bind(this);
+
+    this._openPopupClickHandler = this._openPopupClickHandler.bind(this);
     this._watchlistClickHandler = this._watchlistClickHandler.bind(this);
     this._asWatchedClickHandler = this._asWatchedClickHandler.bind(this);
     this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
@@ -40,16 +40,16 @@ export default class FilmCard extends Abstract {
     return createFilmsCardTemplate(this._film);
   }
 
-  _editClickHandler(evt) {
+  _openPopupClickHandler(evt) {
     evt.preventDefault();
-    this._callback.editClick();
+    this._callback.openPopup();
   }
 
-  setEditClickHandler(callback) {
-    this._callback.editClick = callback;
-    this.getElement().querySelector('.film-card img').addEventListener('click', this._editClickHandler);
-    this.getElement().querySelector('.film-card h3').addEventListener('click', this._editClickHandler);
-    this.getElement().querySelector('.film-card a').addEventListener('click', this._editClickHandler);
+  setOpenPopupClickHandler(callback) {
+    this._callback.openPopup = callback;
+    this.getElement().querySelector('.film-card img').addEventListener('click', this._openPopupClickHandler);
+    this.getElement().querySelector('.film-card h3').addEventListener('click', this._openPopupClickHandler);
+    this.getElement().querySelector('.film-card a').addEventListener('click', this._openPopupClickHandler);
   }
 
   _watchlistClickHandler(evt) {

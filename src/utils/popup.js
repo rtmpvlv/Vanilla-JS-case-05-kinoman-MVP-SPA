@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-const humanizeDate = (date) => {
+export const humanizeDate = (date) => {
   const timeDifference = dayjs().diff(date, 'm');
   if (timeDifference < 5) {
     return 'now';
@@ -20,4 +20,8 @@ const humanizeDate = (date) => {
   return `${dayjs(date).format('YYYY/MM/DD HH:mm')}`;
 };
 
-export default humanizeDate;
+export const convertDuration = (runtime) => {
+  const mins = runtime % 60;
+  const hours = (runtime / 60).toFixed(0);
+  return `${hours}h ${mins}m`;
+};

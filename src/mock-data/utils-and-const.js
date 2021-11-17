@@ -185,12 +185,6 @@ const getArray = (values) => {
   return arr;
 };
 
-const convertDuration = (runtime) => {
-  const mins = runtime % 60;
-  const hours = (runtime / 60).toFixed(0);
-  return `${hours}h ${mins}m`;
-};
-
 export const updateItem = (items, updatedItem) => {
   const index = items.findIndex((item) => item.id === updatedItem.id);
 
@@ -220,6 +214,5 @@ export {
   getRandomInteger,
   getRandomArrayElement,
   generateDate,
-  getArray,
-  convertDuration
+  getArray
 };

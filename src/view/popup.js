@@ -1,15 +1,15 @@
 /* eslint-disable prefer-object-spread */
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
-import { convertDuration, Emotions } from '../mock-data/utils-and-const';
+import { Emotions } from '../mock-data/utils-and-const';
 import { render } from '../utils/render';
 import Smart from './smart';
-import humanizeDate from '../utils/popup';
+import { convertDuration, humanizeDate } from '../utils/popup';
 
 const createPopupTemplate = (data) => {
   const { comments, filmInfo, userDetails } = data;
 
-  const renderGenres = (genresList) => genresList.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
+  const renderGenres = (array) => array.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
   const renderComments = (array) => array.map((item) => `
     <li class="film-details__comment">
       <span class="film-details__comment-emoji">
@@ -143,14 +143,15 @@ export default class Popup extends Smart {
   constructor(film) {
     super();
     this._data = Popup.parseFormToData(film);
-    this._popupClickHandler = this._popupClickHandler.bind(this);
+
+    this._closePopupClickHandler = this._closePopupClickHandler.bind(this);
     this._watchlistClickHandler = this._watchlistClickHandler.bind(this);
     this._asWatchedClickHandler = this._asWatchedClickHandler.bind(this);
     this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
     this._emojiChangeHandler = this._emojiChangeHandler.bind(this);
     this._commentInputHandler = this._commentInputHandler.bind(this);
 
-    this._setInnerHandlers();
+    this.setInnerHandlers();
   }
 
   getTemplate() {
@@ -161,14 +162,14 @@ export default class Popup extends Smart {
     this.updateData(Popup.parseFormToData(film));
   }
 
-  _popupClickHandler(evt) {
+  _closePopupClickHandler(evt) {
     evt.preventDefault();
     this._callback.popupClick();
   }
 
-  setPopupClickHandler(callback) {
+  setClosePopupClickHandler(callback) {
     this._callback.popupClick = callback;
-    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._popupClickHandler);
+    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closePopupClickHandler);
   }
 
   _watchlistClickHandler(evt) {
@@ -202,8 +203,8 @@ export default class Popup extends Smart {
   }
 
   restoreHandlers() {
-    this._setInnerHandlers();
-    this.setPopupClickHandler(this._callback.popupClick);
+    this.setInnerHandlers();
+    this.setClosePopupClickHandler(this._callback.popupClick);
     this.setWatchlistClickHandler(this._callback.watchlistClick);
     this.setAsWatchedClickHandler(this._callback.asWatchedClick);
     this.setFavoriteClickHandler(this._callback.favoriteClick);
@@ -217,7 +218,7 @@ export default class Popup extends Smart {
     return Object.assign({}, data);
   }
 
-  _setInnerHandlers() {
+  setInnerHandlers() {
     this.getElement()
       .querySelector('.film-details__emoji-list')
       .addEventListener('click', this._emojiChangeHandler);
@@ -240,7 +241,7 @@ export default class Popup extends Smart {
         emoji: evt.target,
       });
     }
-    this.getElement().scrollTo(0, 1000);
+    this.getElement().scrollTo(0, this.getElement().scrollHeight);
     this._renderEmojiPic();
   }
 

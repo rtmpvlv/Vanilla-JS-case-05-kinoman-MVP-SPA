@@ -26,6 +26,7 @@ export default class FilmList {
     this._films = films.slice();
     this._sourcedFilms = films.slice();
     this._extraFilms = extraFilms.slice();
+
     this._currentSortType = SortType.DEFAULT;
 
     this._sortView = new SortView();
@@ -46,19 +47,16 @@ export default class FilmList {
   renderView() {
     this._renderSort();
     this._renderFilmSection();
-
     if (this._films.length === 0) {
       this._renderNoFilms();
       document.querySelector('.footer__statistics').textContent = 'There\'s no movies inside.';
-    } else {
-      this._renderFilmContainer();
-      this._renderFiveFilmCards(RENDERED_FILMCARDS_COUNTER);
+      return;
     }
-
+    this._renderFilmContainer();
+    this._renderFiveFilmCards(RENDERED_FILMCARDS_COUNTER);
     if (this._films.length > FILMCARDS_PER_CLICK) {
       this._renderShowMoreButton();
     }
-
     this._renderFirstExtraSection();
     this._renderSecondExtraSection();
     document.querySelector('.films-list--extra:last-child h2').textContent = 'Most commented';
@@ -78,17 +76,17 @@ export default class FilmList {
     this._sortView.setSortTypeChangeHandler(this._handleSortTypeChange);
   }
 
-  _renderFilmCard(film, filmContainer) {
-    const filmPresenter = new Film(filmContainer, this._changeData, this._changeMode);
-    filmPresenter.renderFilmCard(film);
-    this._filmPresenter.set(film.id, filmPresenter);
-  }
-
   _renderFiveFilmCards(counter) {
     for (let i = counter; i < counter + FILMCARDS_PER_CLICK; i += 1) {
       this._renderFilmCard(this._films[i], this._filmContainer);
       RENDERED_FILMCARDS_COUNTER += 1;
     }
+  }
+
+  _renderFilmCard(film, filmContainer) {
+    const filmPresenter = new Film(filmContainer, this._changeData, this._changeMode);
+    filmPresenter.renderFilmCard(film);
+    this._filmPresenter.set(film.id, filmPresenter);
   }
 
   _renderShowMoreButton() {
@@ -162,9 +160,9 @@ export default class FilmList {
     if (this._currentSortType === sortType || !sortType) {
       return;
     }
-    this._sortViewRefresh();
     this._sortFilms(sortType);
     this._clearFilmSection();
+    this._sortViewRefresh();
     this.renderView();
   }
 

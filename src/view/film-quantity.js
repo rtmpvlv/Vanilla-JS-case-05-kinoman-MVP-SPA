@@ -6,8 +6,7 @@ export default class FilmQuantity extends Abstract {
   constructor() {
     super();
     this._markup = `
-    <p>${getRandomInteger(10000, 100000)} movies inside</p>
-  `;
+    <p>${getRandomInteger(10000, 100000)} movies inside</p>`;
   }
 
   getTemplate() {

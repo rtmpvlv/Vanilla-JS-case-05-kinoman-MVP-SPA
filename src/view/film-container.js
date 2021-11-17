@@ -6,8 +6,7 @@ export default class FilmContainer extends Abstract {
     super();
     this._markup = `
       <div class="films-list__container">
-      </div>
-  `;
+      </div>`;
   }
 
   getTemplate() {

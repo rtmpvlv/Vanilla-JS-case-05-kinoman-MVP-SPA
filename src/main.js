@@ -9,6 +9,8 @@ import FilmListPresenter from './presenter/film-list';
 const FILMCARDS_QUANTITY = 20;
 const EXTRA_FILMCARDS_QUANTITY = 4;
 
+// mock data
+
 const filmsList = new Array(FILMCARDS_QUANTITY).fill().map(getMovieData);
 const extraFilmList = new Array(EXTRA_FILMCARDS_QUANTITY).fill().map(getMovieData);
 const filters = setFiltering(filmsList);
