@@ -1,7 +1,7 @@
 /* eslint-disable prefer-object-spread */
 /* eslint-disable no-underscore-dangle */
 import dayjs from 'dayjs';
-import { Emotions } from '../mock-data/utils-and-const';
+import { Emotions, getRandomInteger } from '../mock-data/utils-and-const';
 import { render } from '../utils/render';
 import Smart from './smart';
 import { convertDuration, humanizeDate } from '../utils/popup';
@@ -9,8 +9,8 @@ import { convertDuration, humanizeDate } from '../utils/popup';
 const createPopupTemplate = (data) => {
   const { comments, filmInfo, userDetails } = data;
 
-  const renderGenres = (array) => array.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
-  const renderComments = (array) => array.map((item) => `
+  const createCommentsTemplate = () => {
+    const commentsListItem = comments.map((item) => `
     <li class="film-details__comment">
       <span class="film-details__comment-emoji">
         <img src="./images/emoji/${item.emotion}.png" width="55" height="55" alt="emoji-${item.emotion}">
@@ -20,11 +20,16 @@ const createPopupTemplate = (data) => {
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${item.author}</span>
           <span class="film-details__comment-day">${humanizeDate(item.date)}</span>
-          <button class="film-details__comment-delete">Delete</button>
+          <button class="film-details__comment-delete"  id="${item.id}">Delete</button>
         </p>
       </div>
     </li>`).join('');
+    const commentsList = `<ul class="film-details__comments-list">${commentsListItem}</ul>`;
 
+    return commentsList;
+  };
+
+  const renderGenres = (array) => array.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
   return `
     <section class="film-details">
       <form class="film-details__inner" action="" method="get">
@@ -77,7 +82,7 @@ const createPopupTemplate = (data) => {
                   <td class="film-details__cell">${filmInfo.release.country}</td>
                 </tr>
                 <tr class="film-details__row">
-                  <td class="film-details__term">Genres</td>
+                  <td class="film-details__term">${filmInfo.genre.length > 1 ? 'Genres' : 'Genre'}</td>
                   <td class="film-details__cell">${renderGenres(filmInfo.genre)}</td>
                 </tr>
               </table>
@@ -97,12 +102,8 @@ const createPopupTemplate = (data) => {
 
         <div class="film-details__bottom-container">
           <section class="film-details__comments-wrap">
-            <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${comments.length}</span></h3>
-
-            <ul class="film-details__comments-list">
-              ${renderComments(comments)}
-            </ul>
-
+            <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">(${comments.length})</span></h3>
+            ${createCommentsTemplate()}
             <div class="film-details__new-comment">
               <div class="film-details__add-emoji-label"></div>
 
@@ -150,6 +151,9 @@ export default class Popup extends Smart {
     this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
     this._emojiChangeHandler = this._emojiChangeHandler.bind(this);
     this._commentInputHandler = this._commentInputHandler.bind(this);
+    this._commentDeleteHandler = this._commentDeleteHandler.bind(this);
+    this._deleteCommentClickHandler = this._deleteCommentClickHandler.bind(this);
+    this._addCommentClickHandler = this._addCommentClickHandler.bind(this);
 
     this.setInnerHandlers();
   }
@@ -202,12 +206,63 @@ export default class Popup extends Smart {
     this.getElement().querySelector('.film-details__control-button--favorite').addEventListener('click', this._favoriteClickHandler);
   }
 
+  _deleteCommentClickHandler(evt) {
+    evt.preventDefault();
+    this._commentDeleteHandler(evt);
+    this._callback.deleteCommentClick(Popup.parseDataToForm(this._data));
+  }
+
+  setDeleteCommentClickHandler(callback) {
+    this._callback.deleteCommentClick = callback;
+    this.getElement()
+      .querySelectorAll('.film-details__comment')
+      .forEach((item) => item.addEventListener('click', this._deleteCommentClickHandler));
+  }
+
+  _addCommentClickHandler(evt) {
+    if (evt.ctrlKey && evt.keyCode === 13) {
+      const newComment = {
+        author: 'You',
+        comment: this._data.newComment,
+        id: getRandomInteger(1, 10000000),
+        date: new Date(),
+        emotion: this._data.emoji,
+      };
+
+      delete this._data.newComment;
+      delete this._data.emoji;
+
+      this.updateData({
+        comments: [...this._data.comments, newComment],
+      });
+      this._callback.addCommentClick(Popup.parseDataToForm(this._data));
+    }
+  }
+
+  setAddCommentClickHandler(callback) {
+    this._callback.addCommentClick = callback;
+    this.getElement().addEventListener('keydown', this._addCommentClickHandler);
+  }
+
+  _emojiChangeHandler(evt) {
+    evt.preventDefault();
+    if (evt.target.tagName === 'IMG') {
+      this.updateData({
+        emoji: evt.target.src,
+      });
+      this.getElement().scrollTo(0, this.getElement().scrollHeight);
+      this._renderEmojiPic();
+    }
+  }
+
   restoreHandlers() {
     this.setInnerHandlers();
     this.setClosePopupClickHandler(this._callback.popupClick);
     this.setWatchlistClickHandler(this._callback.watchlistClick);
     this.setAsWatchedClickHandler(this._callback.asWatchedClick);
     this.setFavoriteClickHandler(this._callback.favoriteClick);
+    this.setDeleteCommentClickHandler(this._callback.deleteCommentClick);
+    this.setAddCommentClickHandler(this._callback.addCommentClick);
   }
 
   static parseFormToData(point) {
@@ -220,37 +275,47 @@ export default class Popup extends Smart {
 
   setInnerHandlers() {
     this.getElement()
-      .querySelector('.film-details__emoji-list')
-      .addEventListener('click', this._emojiChangeHandler);
-    this.getElement()
       .querySelector('.film-details__comment-input')
       .addEventListener('input', this._commentInputHandler);
+    this.getElement()
+      .querySelector('.film-details__emoji-list')
+      .addEventListener('click', this._emojiChangeHandler);
   }
 
   _commentInputHandler(evt) {
-    evt.preventDefault();
     this.updateData({
       newComment: evt.target.value,
     }, true);
   }
 
-  _emojiChangeHandler(evt) {
-    evt.preventDefault();
-    if (evt.target.tagName === 'IMG') {
+  _commentDeleteHandler(evt) {
+    if (evt.target.tagName === 'BUTTON') {
+      const pickedComment = Number(evt.target.id);
+      const index = this._data.comments.findIndex((item) => item.id === pickedComment);
+      if (index < 0) {
+        return;
+      }
       this.updateData({
-        emoji: evt.target,
+        comments: [
+          ...this._data.comments.slice(0, index),
+          ...this._data.comments.slice(index + 1),
+        ],
       });
+      this.getElement().scrollTo(0, this.getElement().scrollHeight);
     }
-    this.getElement().scrollTo(0, this.getElement().scrollHeight);
-    this._renderEmojiPic();
   }
 
   _renderEmojiPic() {
     Emotions.forEach((item) => {
-      if (this._data.emoji.src.includes(item)) {
-        this._data.emoji.style.width = '55px';
-        this._data.emoji.style.height = '55px';
-        render(this.getElement().querySelector('.film-details__add-emoji-label'), this._data.emoji);
+      if (this._data.emoji.includes(item)) {
+        this.updateData({
+          emoji: item,
+        }, true);
+        const img = document.createElement('img');
+        img.src = `./images/emoji/${item}.png`;
+        img.style.width = '55px';
+        img.style.height = '55px';
+        render(this.getElement().querySelector('.film-details__add-emoji-label'), img);
       }
     });
   }

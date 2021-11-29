@@ -3,6 +3,7 @@
 import FilmCardView from '../view/film-card';
 import PopupView from '../view/popup';
 import { render, replace, remove } from '../utils/render';
+import { UpdateType, UserAction } from '../utils/const';
 
 const Mode = {
   FILM_CARD: 'FILM_CARD',
@@ -25,6 +26,48 @@ export default class Film {
     this._handleWatchlistClick = this._handleWatchlistClick.bind(this);
     this._handleAsWatchedClick = this._handleAsWatchedClick.bind(this);
     this._handleFavoriteClick = this._handleFavoriteClick.bind(this);
+    this._handleCommentsChange = this._handleCommentsChange.bind(this);
+  }
+
+  renderFilmCard(film) {
+    this._film = film;
+    const prevFilmCard = this._filmCard;
+    const prevPopup = this._popup;
+    this._filmCard = new FilmCardView(film);
+    this._popup = new PopupView(film);
+
+    this._filmCard.setOpenPopupClickHandler(this._openPopup);
+    this._filmCard.setWatchlistClickHandler(this._handleWatchlistClick);
+    this._filmCard.setAsWatchedClickHandler(this._handleAsWatchedClick);
+    this._filmCard.setFavoriteClickHandler(this._handleFavoriteClick);
+    this._popup.setClosePopupClickHandler(this._closePopup);
+    this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
+    this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
+    this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
+    this._popup.setDeleteCommentClickHandler(this._handleCommentsChange);
+    this._popup.setAddCommentClickHandler(this._handleCommentsChange);
+
+    if (prevFilmCard === null || prevPopup === null) {
+      render(this._filmContainer, this._filmCard);
+      return;
+    }
+
+    replace(this._filmCard, prevFilmCard);
+    replace(this._popup, prevPopup);
+    remove(prevFilmCard);
+    remove(prevPopup);
+  }
+
+  destroy() {
+    remove(this._filmCard);
+    remove(this._popup);
+  }
+
+  resetView() {
+    if (this._mode !== Mode.FILM_CARD) {
+      remove(this._popup);
+      this._mode = Mode.FILM_CARD;
+    }
   }
 
   _keyPressed(evt) {
@@ -53,35 +96,10 @@ export default class Film {
     this._mode = Mode.POPUP;
   }
 
-  renderFilmCard(film) {
-    this._film = film;
-    const prevFilmCard = this._filmCard;
-    const prevPopup = this._popup;
-    this._filmCard = new FilmCardView(film);
-    this._popup = new PopupView(film);
-
-    this._filmCard.setOpenPopupClickHandler(this._openPopup);
-    this._filmCard.setWatchlistClickHandler(this._handleWatchlistClick);
-    this._filmCard.setAsWatchedClickHandler(this._handleAsWatchedClick);
-    this._filmCard.setFavoriteClickHandler(this._handleFavoriteClick);
-    this._popup.setClosePopupClickHandler(this._closePopup);
-    this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
-    this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
-    this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
-
-    if (prevFilmCard === null || prevPopup === null) {
-      render(this._filmContainer, this._filmCard);
-      return;
-    }
-
-    replace(this._filmCard, prevFilmCard);
-    replace(this._popup, prevPopup);
-    remove(prevFilmCard);
-    remove(prevPopup);
-  }
-
   _handleWatchlistClick() {
     this._changeData(
+      UserAction.UPDATE_FILM,
+      UpdateType.PATCH,
       Object.assign(
         {},
         this._film,
@@ -98,6 +116,8 @@ export default class Film {
 
   _handleAsWatchedClick() {
     this._changeData(
+      UserAction.UPDATE_FILM,
+      UpdateType.PATCH,
       Object.assign(
         {},
         this._film,
@@ -114,6 +134,8 @@ export default class Film {
 
   _handleFavoriteClick() {
     this._changeData(
+      UserAction.UPDATE_FILM,
+      UpdateType.PATCH,
       Object.assign(
         {},
         this._film,
@@ -128,15 +150,17 @@ export default class Film {
     );
   }
 
-  destroy() {
-    remove(this._filmCard);
-    remove(this._popup);
-  }
-
-  resetView() {
-    if (this._mode !== Mode.FILM_CARD) {
-      remove(this._popup);
-      this._mode = Mode.FILM_CARD;
-    }
+  _handleCommentsChange(film) {
+    this._changeData(
+      UserAction.UPDATE_FILM,
+      UpdateType.PATCH,
+      Object.assign(
+        {},
+        this._film,
+        {
+          comments: film.comments,
+        },
+      ),
+    );
   }
 }

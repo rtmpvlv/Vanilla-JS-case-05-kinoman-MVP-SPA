@@ -5,6 +5,14 @@ import Abstract from './abstract';
 
 const createFilmsCardTemplate = (film) => {
   const { comments, filmInfo, userDetails } = film;
+
+  const getDescription = (description) => {
+    if (description.length > 140) {
+      return `${description.slice(0, 139)}...`;
+    }
+    return description;
+  };
+
   return `
     <article class="film-card">
       <h3 class="film-card__title">${filmInfo.title}</h3>
@@ -15,8 +23,8 @@ const createFilmsCardTemplate = (film) => {
         <span class="film-card__genre">${filmInfo.genre[0]}</span>
       </p>
       <img src="${filmInfo.poster}" alt="" class="film-card__poster">
-      <p class="film-card__description">${filmInfo.description}</p>
-      <a class="film-card__comments">${comments.length > 1 ? `${comments.length} comments` : '1 comment'}</a>
+      <p class="film-card__description">${getDescription(filmInfo.description)}</p>
+      <a class="film-card__comments">${comments.length === 1 ? '1 comment' : `${comments.length} comments`}</a>
       <div class="film-card__controls">
         <button class="film-card__controls-item film-card__controls-item--add-to-watchlist ${userDetails.watchList ? 'film-card__controls-item--active' : ''}" type="button">Add to watchlist</button>
         <button class="film-card__controls-item film-card__controls-item--mark-as-watched ${userDetails.alreadyWatched ? 'film-card__controls-item--active' : ''}" type="button">Mark as watched</button>

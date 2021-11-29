@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 import Abstract from './abstract';
-import SortType from '../utils/const';
+import { SortType } from '../utils/const';
 
 let CHECKED_SORT_TYPE = SortType.DEFAULT;
 
