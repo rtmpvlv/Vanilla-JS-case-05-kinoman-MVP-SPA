@@ -1,30 +1,39 @@
-import ProfileView from './view/profile';
-import MenuView from './view/menu';
-import FilmQuantityView from './view/film-quantity';
-import getMovieData from './mock-data/mock-data';
-import setFiltering from './mock-data/filter';
-import { render, RenderPosition } from './utils/render';
-import FilmListPresenter from './presenter/list';
 import MoviesModel from './model/movies';
 import ExtraMoviesModel from './model/extra-movies';
+import FilterModel from './model/filter';
+import CommentsModel from './model/comments';
+import ProfileView from './view/profile';
+import FilmQuantityView from './view/film-quantity';
+import FilmListPresenter from './presenter/list';
+import MenuPresenter from './presenter/filter';
+import { render } from './utils/render';
+import getMovieData from './mock-data/mock-data';
 
 const FILMCARDS_QUANTITY = 20;
 const EXTRA_FILMCARDS_QUANTITY = 4;
 
 const films = new Array(FILMCARDS_QUANTITY).fill().map(getMovieData);
 const extraFilmList = new Array(EXTRA_FILMCARDS_QUANTITY).fill().map(getMovieData);
-const filters = setFiltering(films);
 
 const header = document.querySelector('.header');
 const mainContent = document.querySelector('.main');
 
 const moviesModel = new MoviesModel();
 const extraMoviesModel = new ExtraMoviesModel();
+const commentsModel = new CommentsModel();
 moviesModel.setMovies(films);
 extraMoviesModel.setMovies(extraFilmList);
-const filmListPresenter = new FilmListPresenter(mainContent, moviesModel, extraMoviesModel);
-
-render(mainContent, new MenuView(filters), RenderPosition.AFTERBEGIN);
+commentsModel.setComments(films.map((film) => film.comments));
+const filterModel = new FilterModel();
+const filmListPresenter = new FilmListPresenter(
+  mainContent,
+  moviesModel,
+  extraMoviesModel,
+  filterModel,
+  commentsModel,
+);
+const menuPresenter = new MenuPresenter(mainContent, filterModel, moviesModel);
+menuPresenter.init();
 
 if (films.length !== 0) {
   render(header, new ProfileView());

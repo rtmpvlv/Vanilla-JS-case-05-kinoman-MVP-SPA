@@ -1,5 +1,6 @@
 /* eslint-disable prefer-object-spread */
 /* eslint-disable no-underscore-dangle */
+import he from 'he';
 import dayjs from 'dayjs';
 import { Emotions, getRandomInteger } from '../mock-data/utils-and-const';
 import { render } from '../utils/render';
@@ -16,7 +17,7 @@ const createPopupTemplate = (data) => {
         <img src="./images/emoji/${item.emotion}.png" width="55" height="55" alt="emoji-${item.emotion}">
       </span>
       <div>
-        <p class="film-details__comment-text">${item.comment}</p>
+        <p class="film-details__comment-text">${he.encode(item.comment)}</p>
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${item.author}</span>
           <span class="film-details__comment-day">${humanizeDate(item.date)}</span>

@@ -11,10 +11,11 @@ const Mode = {
 };
 
 export default class Film {
-  constructor(filmContainer, changeData, changeMode) {
+  constructor(filmContainer, changeData, changeMode, filterModel) {
     this._filmContainer = filmContainer;
     this._changeData = changeData;
     this._changeMode = changeMode;
+    this._filterModel = filterModel;
 
     this._filmCard = null;
     this._popup = null;
@@ -99,7 +100,7 @@ export default class Film {
   _handleWatchlistClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      UpdateType.PATCH,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._film,
@@ -117,7 +118,7 @@ export default class Film {
   _handleAsWatchedClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      UpdateType.PATCH,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._film,
@@ -135,7 +136,7 @@ export default class Film {
   _handleFavoriteClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      UpdateType.PATCH,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._film,
@@ -152,7 +153,7 @@ export default class Film {
 
   _handleCommentsChange(film) {
     this._changeData(
-      UserAction.UPDATE_FILM,
+      UserAction.CHANGE_COMMENTSLIST,
       UpdateType.PATCH,
       Object.assign(
         {},
