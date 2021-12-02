@@ -7,18 +7,18 @@ import {
   RenderPosition
 } from '../utils/render';
 import filter from '../utils/filter';
-import { FilterType, UpdateType } from '../utils/const';
+import { FilterType } from '../utils/const';
 
 export default class Menu {
-  constructor(filterContainer, filterModel, moviesModel) {
+  constructor(filterContainer, filterModel, moviesModel, handleSiteMenuClick) {
     this._filterContainer = filterContainer;
     this._filterModel = filterModel;
     this._moviesModel = moviesModel;
+    this._handleSiteMenuClick = handleSiteMenuClick;
 
-    this._filterComponent = null;
+    this._menuView = null;
 
     this._handleModelEvent = this._handleModelEvent.bind(this);
-    this._handleFilterTypeChange = this._handleFilterTypeChange.bind(this);
 
     this._moviesModel.addObserver(this._handleModelEvent);
     this._filterModel.addObserver(this._handleModelEvent);
@@ -26,30 +26,22 @@ export default class Menu {
 
   init() {
     const filters = this._getFilters();
-    const prevFilterComponent = this._filterComponent;
+    const prevFilterComponent = this._menuView;
 
-    this._filterComponent = new MenuView(filters, this._filterModel.getFilter());
-    this._filterComponent.setFilterTypeChangeHandler(this._handleFilterTypeChange);
+    this._menuView = new MenuView(filters, this._filterModel.getFilter());
+    this._menuView.setMenuChangeHandler(this._handleSiteMenuClick);
 
     if (prevFilterComponent === null) {
-      render(this._filterContainer, this._filterComponent, RenderPosition.AFTERBEGIN);
+      render(this._filterContainer, this._menuView, RenderPosition.AFTERBEGIN);
       return;
     }
 
-    replace(this._filterComponent, prevFilterComponent);
+    replace(this._menuView, prevFilterComponent);
     remove(prevFilterComponent);
   }
 
   _handleModelEvent() {
     this.init();
-  }
-
-  _handleFilterTypeChange(filterType) {
-    if (this._filterModel.getFilter() === filterType) {
-      return;
-    }
-
-    this._filterModel.setFilter(UpdateType.MAJOR, filterType);
   }
 
   _getFilters() {

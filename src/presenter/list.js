@@ -76,9 +76,9 @@ export default class FilmList {
       case SortType.DEFAULT:
         return filteredMovies;
       case SortType.DATE:
-        return filteredMovies.sort(sortByDate);
+        return filteredMovies.slice().sort(sortByDate);
       case SortType.RATING:
-        return filteredMovies.sort(sortByRating);
+        return filteredMovies.slice().sort(sortByRating);
       default:
         throw new Error('Enexpected sort type.');
     }
@@ -165,10 +165,11 @@ export default class FilmList {
     this._renderFilmCard(this._extraMoviesModel.getMovies()[3], this._extraFilmContainer2);
   }
 
-  _clearView({ resetFilmcardsCounter = false, resetSortType = false } = {}) {
+  clearView({ resetFilmcardsCounter = false, resetSortType = false } = {}) {
     this._filmPresenter.forEach((item) => item.destroy());
     this._filmPresenter.clear();
 
+    remove(this._filmSection);
     remove(this._sortView);
     remove(this._showMoreButton);
     remove(this._extraFilmsSection1);
@@ -189,11 +190,11 @@ export default class FilmList {
         this._filmPresenter.get(updatedMovie.id).renderFilmCard(updatedMovie);
         break;
       case UpdateType.MINOR:
-        this._clearView({ resetFilmcardsCounter: true });
+        this.clearView({ resetFilmcardsCounter: true });
         this.renderView();
         break;
       case UpdateType.MAJOR:
-        this._clearView({ resetFilmcardsCounter: true, resetSortType: true });
+        this.clearView({ resetFilmcardsCounter: true, resetSortType: true });
         this.renderView();
         break;
       default:
@@ -227,7 +228,7 @@ export default class FilmList {
       return;
     }
     this._currentSortType = sortType;
-    this._clearView({ resetFilmcardsCounter: true });
+    this.clearView({ resetFilmcardsCounter: true });
     this.renderView();
   }
 }

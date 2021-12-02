@@ -152,7 +152,6 @@ export default class Popup extends Smart {
     this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
     this._emojiChangeHandler = this._emojiChangeHandler.bind(this);
     this._commentInputHandler = this._commentInputHandler.bind(this);
-    this._commentDeleteHandler = this._commentDeleteHandler.bind(this);
     this._deleteCommentClickHandler = this._deleteCommentClickHandler.bind(this);
     this._addCommentClickHandler = this._addCommentClickHandler.bind(this);
 
@@ -209,7 +208,7 @@ export default class Popup extends Smart {
 
   _deleteCommentClickHandler(evt) {
     evt.preventDefault();
-    this._commentDeleteHandler(evt);
+    this._deleteComment(evt);
     this._callback.deleteCommentClick(Popup.parseDataToForm(this._data));
   }
 
@@ -289,7 +288,7 @@ export default class Popup extends Smart {
     }, true);
   }
 
-  _commentDeleteHandler(evt) {
+  _deleteComment(evt) {
     if (evt.target.tagName === 'BUTTON') {
       const pickedComment = Number(evt.target.id);
       const index = this._data.comments.findIndex((item) => item.id === pickedComment);

@@ -4,6 +4,14 @@ export const SortType = {
   RATING: 'rating',
 };
 
+export const StatisticsSortType = {
+  ALLTIME: 'all-time',
+  TODAY: 'today',
+  WEEK: 'week',
+  MONTH: 'month',
+  YEAR: 'year',
+};
+
 export const UserAction = {
   UPDATE_FILM: 'Update-film',
   CHANGE_COMMENTSLIST: 'Change-comments',
@@ -20,4 +28,9 @@ export const FilterType = {
   WATCHLIST: 'Watchlist',
   HISTORY: 'History',
   FAVORITES: 'Favorites',
+};
+
+export const MenuItem = {
+  TABLE: 'table',
+  STATS: 'stats',
 };

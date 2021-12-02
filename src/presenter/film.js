@@ -91,8 +91,8 @@ export default class Film {
   _openPopup() {
     document.body.classList.add('hide-overflow');
     this._changeMode();
-    render(document.body, this._popup);
     this._popup.restoreHandlers();
+    render(document.body, this._popup);
     document.addEventListener('keydown', this._keyPressed);
     this._mode = Mode.POPUP;
   }
@@ -116,6 +116,25 @@ export default class Film {
   }
 
   _handleAsWatchedClick() {
+    if (this._film.userDetails.alreadyWatched) {
+      this._changeData(
+        UserAction.UPDATE_FILM,
+        UpdateType.MINOR,
+        Object.assign(
+          {},
+          this._film,
+          {
+            userDetails: {
+              watchList: this._film.userDetails.watchList,
+              alreadyWatched: false,
+              favorite: this._film.userDetails.favorite,
+              watchingDate: false,
+            },
+          },
+        ),
+      );
+      return;
+    }
     this._changeData(
       UserAction.UPDATE_FILM,
       UpdateType.MINOR,
@@ -125,8 +144,9 @@ export default class Film {
         {
           userDetails: {
             watchList: this._film.userDetails.watchList,
-            alreadyWatched: !this._film.userDetails.alreadyWatched,
+            alreadyWatched: true,
             favorite: this._film.userDetails.favorite,
+            watchingDate: new Date(),
           },
         },
       ),
