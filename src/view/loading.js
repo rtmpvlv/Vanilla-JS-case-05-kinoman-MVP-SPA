@@ -1,10 +1,10 @@
 /* eslint-disable no-underscore-dangle */
 import AbstractView from './abstract';
 
-export default class FilmQuantity extends AbstractView {
+export default class Loading extends AbstractView {
   constructor() {
     super();
-    this._markup = '<p>0 movies inside</p>';
+    this._markup = '<h2 class="films-list__title">Loading...</h2>';
   }
 
   getTemplate() {

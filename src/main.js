@@ -8,14 +8,11 @@ import MenuPresenter from './presenter/menu';
 import StatsPresenter from './presenter/stats';
 import ProfilePresenter from './presenter/profile';
 import { render } from './utils/render';
-import { FilterType, UpdateType } from './utils/const';
-import getMovieData from './mock-data/mock-data';
+import { FilterType, UpdateType, APIDataType } from './utils/const';
+import Api from './api';
 
-const FILMCARDS_QUANTITY = 20;
-const EXTRA_FILMCARDS_QUANTITY = 4;
-
-const films = new Array(FILMCARDS_QUANTITY).fill().map(getMovieData);
-const extraFilmList = new Array(EXTRA_FILMCARDS_QUANTITY).fill().map(getMovieData);
+const AUTHORIZATION = 'Basic rtmpvlv';
+const END_POINT = 'https://14.ecmascript.pages.academy/cinemaddict';
 
 const header = document.querySelector('.header');
 const main = document.querySelector('.main');
@@ -24,26 +21,16 @@ const moviesModel = new MoviesModel();
 const extraMoviesModel = new ExtraMoviesModel();
 const commentsModel = new CommentsModel();
 const filterModel = new FilterModel();
-moviesModel.setMovies(films);
-extraMoviesModel.setMovies(extraFilmList);
-commentsModel.setComments(films.map((film) => film.comments));
+const api = new Api(END_POINT, AUTHORIZATION);
 const filmListPresenter = new FilmListPresenter(
   main,
   moviesModel,
   extraMoviesModel,
   filterModel,
   commentsModel,
+  api,
 );
-
 const profilePresenter = new ProfilePresenter(header, moviesModel);
-
-if (films.length !== 0) {
-  profilePresenter.init();
-  const footerStatistics = document.querySelector('.footer__statistics');
-  render(footerStatistics, new FilmQuantityView());
-}
-filmListPresenter.renderView();
-
 const statsPresenter = new StatsPresenter(main, moviesModel);
 
 const handleSiteMenuClick = (menuItem) => {
@@ -65,8 +52,20 @@ const handleSiteMenuClick = (menuItem) => {
       throw new Error('Unexpected menu item.');
   }
 };
-
 const menuPresenter = new MenuPresenter(main, filterModel, moviesModel, handleSiteMenuClick);
 menuPresenter.init();
+filmListPresenter.renderView();
+const footerStatistics = document.querySelector('.footer__statistics');
+render(footerStatistics, new FilmQuantityView());
 
-// Разобраться с обновлением листа
+api.getData(APIDataType.MOVIES)
+  .then((movies) => {
+    moviesModel.setMovies(UpdateType.INIT, movies);
+    footerStatistics.textContent = `${moviesModel.getMovies().length} movies inside`;
+    profilePresenter.init();
+  })
+  .catch(() => {
+    moviesModel.setMovies(UpdateType.ABORT, []);
+  });
+
+// Функция сортировки по рейтингу косячит

@@ -4,7 +4,7 @@ import { FilterType } from '../utils/const';
 
 const createFilterItemTemplate = ((filters, currentFilterType) => filters.map(({ type, name, count }) => `
   <a href="#" id="${type}" class="main-navigation__item ${type === currentFilterType ? 'main-navigation__item--active' : ''}">
-  ${name}${type !== FilterType.ALL ? `<span class="main-navigation__item-count">${count}</span>` : ''}
+  ${name} ${type !== FilterType.ALL ? `<span class="main-navigation__item-count">${count}</span>` : ''}
   </a>`).join('')
 );
 

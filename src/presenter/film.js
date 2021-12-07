@@ -3,7 +3,7 @@
 import FilmCardView from '../view/film-card';
 import PopupView from '../view/popup';
 import { render, replace, remove } from '../utils/render';
-import { UpdateType, UserAction } from '../utils/const';
+import { FilterType, UpdateType, UserAction } from '../utils/const';
 
 const Mode = {
   FILM_CARD: 'FILM_CARD',
@@ -11,11 +11,14 @@ const Mode = {
 };
 
 export default class Film {
-  constructor(filmContainer, changeData, changeMode, filterModel) {
+  constructor(filmContainer, changeData, changeMode, filterModel, commentsModel, api) {
     this._filmContainer = filmContainer;
     this._changeData = changeData;
     this._changeMode = changeMode;
     this._filterModel = filterModel;
+    this._filterType = this._filterModel.getFilter();
+    this._commentsModel = commentsModel;
+    this._api = api;
 
     this._filmCard = null;
     this._popup = null;
@@ -33,40 +36,37 @@ export default class Film {
   renderFilmCard(film) {
     this._film = film;
     const prevFilmCard = this._filmCard;
-    const prevPopup = this._popup;
     this._filmCard = new FilmCardView(film);
-    this._popup = new PopupView(film);
 
     this._filmCard.setOpenPopupClickHandler(this._openPopup);
     this._filmCard.setWatchlistClickHandler(this._handleWatchlistClick);
     this._filmCard.setAsWatchedClickHandler(this._handleAsWatchedClick);
     this._filmCard.setFavoriteClickHandler(this._handleFavoriteClick);
-    this._popup.setClosePopupClickHandler(this._closePopup);
-    this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
-    this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
-    this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
-    this._popup.setDeleteCommentClickHandler(this._handleCommentsChange);
-    this._popup.setAddCommentClickHandler(this._handleCommentsChange);
 
-    if (prevFilmCard === null || prevPopup === null) {
+    if (prevFilmCard === null) {
       render(this._filmContainer, this._filmCard);
       return;
     }
 
     replace(this._filmCard, prevFilmCard);
-    replace(this._popup, prevPopup);
     remove(prevFilmCard);
-    remove(prevPopup);
+
+    if (this._mode === Mode.POPUP) {
+      this._openPopup();
+    }
   }
 
   destroy() {
     remove(this._filmCard);
+    this._filmCard = null;
     remove(this._popup);
+    this._popup = null;
   }
 
   resetView() {
     if (this._mode !== Mode.FILM_CARD) {
       remove(this._popup);
+      this._popup = null;
       this._mode = Mode.FILM_CARD;
     }
   }
@@ -78,29 +78,53 @@ export default class Film {
       document.removeEventListener('keydown', this._keyPressed);
       this._mode = Mode.FILM_CARD;
       remove(this._popup);
+      this._popup = null;
     }
   }
 
   _closePopup() {
     document.body.classList.remove('hide-overflow');
     document.removeEventListener('keydown', this._keyPressed);
-    this._mode = Mode.FILM_CARD;
     remove(this._popup);
+    this._popup = null;
+    this._mode = Mode.FILM_CARD;
   }
 
   _openPopup() {
     document.body.classList.add('hide-overflow');
     this._changeMode();
-    this._popup.restoreHandlers();
-    render(document.body, this._popup);
+    this._api.getComments(this._film)
+      .then((comments) => comments.forEach((comment) => this._commentsModel.setComment(comment)))
+      .then(() => {
+        const prevPopup = this._popup;
+        this._popup = new PopupView(this._film, this._commentsModel);
+        this._popup.setClosePopupClickHandler(this._closePopup);
+        this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
+        this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
+        this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
+        this._popup.setDeleteCommentClickHandler(this._handleCommentsChange);
+        this._popup.setAddCommentClickHandler(this._handleCommentsChange);
+        if (prevPopup === null) {
+          render(document.body, this._popup);
+          return;
+        }
+        replace(this._popup, prevPopup);
+        remove(prevPopup);
+      });
     document.addEventListener('keydown', this._keyPressed);
     this._mode = Mode.POPUP;
+  }
+
+  _chooseFilterType(type) {
+    return this._filterType === type
+    && this._filterType !== FilterType.ALL
+      ? UpdateType.MINOR : UpdateType.PATCH;
   }
 
   _handleWatchlistClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      UpdateType.MINOR,
+      this._chooseFilterType(FilterType.WATCHLIST),
       Object.assign(
         {},
         this._film,
@@ -109,6 +133,7 @@ export default class Film {
             watchList: !this._film.userDetails.watchList,
             alreadyWatched: this._film.userDetails.alreadyWatched,
             favorite: this._film.userDetails.favorite,
+            watchingDate: this._film.userDetails.watchingDate,
           },
         },
       ),
@@ -119,7 +144,7 @@ export default class Film {
     if (this._film.userDetails.alreadyWatched) {
       this._changeData(
         UserAction.UPDATE_FILM,
-        UpdateType.MINOR,
+        this._chooseFilterType(FilterType.HISTORY),
         Object.assign(
           {},
           this._film,
@@ -128,7 +153,7 @@ export default class Film {
               watchList: this._film.userDetails.watchList,
               alreadyWatched: false,
               favorite: this._film.userDetails.favorite,
-              watchingDate: false,
+              watchingDate: null,
             },
           },
         ),
@@ -137,7 +162,7 @@ export default class Film {
     }
     this._changeData(
       UserAction.UPDATE_FILM,
-      UpdateType.MINOR,
+      this._chooseFilterType(FilterType.HISTORY),
       Object.assign(
         {},
         this._film,
@@ -156,7 +181,7 @@ export default class Film {
   _handleFavoriteClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      UpdateType.MINOR,
+      this._chooseFilterType(FilterType.FAVORITES),
       Object.assign(
         {},
         this._film,
@@ -165,6 +190,7 @@ export default class Film {
             watchList: this._film.userDetails.watchList,
             alreadyWatched: this._film.userDetails.alreadyWatched,
             favorite: !this._film.userDetails.favorite,
+            watchingDate: this._film.userDetails.watchingDate,
           },
         },
       ),

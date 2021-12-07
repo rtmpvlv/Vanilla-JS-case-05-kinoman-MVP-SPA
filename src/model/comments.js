@@ -11,8 +11,23 @@ export default class Comments extends AbstractObserver {
     this._comments = comments.slice();
   }
 
+  setComment(comment) {
+    const index = this._comments.findIndex((item) => item.id === comment.id);
+
+    if (index < 0) {
+      this._comments.push(comment);
+      return;
+    }
+
+    this._comments = [
+      ...this._comments.slice(0, index),
+      ...this._comments.slice(index + 1),
+      comment,
+    ];
+  }
+
   getComments() {
-    return this._comments;
+    return Array.from(this._comments);
   }
 
   updateCommentsList(updateType, update) {

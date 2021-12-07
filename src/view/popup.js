@@ -7,30 +7,35 @@ import { render } from '../utils/render';
 import Smart from './smart';
 import { convertDuration, humanizeDate } from '../utils/popup';
 
-const createPopupTemplate = (data) => {
+const createPopupTemplate = (data, commentsContent) => {
   const { comments, filmInfo, userDetails } = data;
 
   const createCommentsTemplate = () => {
-    const commentsListItem = comments.map((item) => `
+    if (commentsContent.length === 0) {
+      return `<ul class="film-details__comments-list">
+      <li><p>Comments download error.</p></li>
+      </ul>`;
+    }
+    const commentsListItem = commentsContent.map((comment) => `
     <li class="film-details__comment">
       <span class="film-details__comment-emoji">
-        <img src="./images/emoji/${item.emotion}.png" width="55" height="55" alt="emoji-${item.emotion}">
+        <img src="./images/emoji/${comment.emotion}.png" width="55" height="55" alt="emoji-${comment.emotion}">
       </span>
       <div>
-        <p class="film-details__comment-text">${he.encode(item.comment)}</p>
+        <p class="film-details__comment-text">${he.encode(comment.comment)}</p>
         <p class="film-details__comment-info">
-          <span class="film-details__comment-author">${item.author}</span>
-          <span class="film-details__comment-day">${humanizeDate(item.date)}</span>
-          <button class="film-details__comment-delete"  id="${item.id}">Delete</button>
+          <span class="film-details__comment-author">${comment.author}</span>
+          <span class="film-details__comment-day">${humanizeDate(comment.date)}</span>
+          <button class="film-details__comment-delete"  id="${comment.id}">Delete</button>
         </p>
       </div>
     </li>`).join('');
     const commentsList = `<ul class="film-details__comments-list">${commentsListItem}</ul>`;
-
     return commentsList;
   };
 
-  const renderGenres = (array) => array.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
+  const renderGenres = (array) => `<span class="film-details__genre">${array.join(', ')}</span>`;
+
   return `
     <section class="film-details">
       <form class="film-details__inner" action="" method="get">
@@ -95,9 +100,18 @@ const createPopupTemplate = (data) => {
           </div>
 
           <section class="film-details__controls">
-            <button type="button" class="film-details__control-button film-details__control-button--watchlist ${userDetails.watchList ? 'film-details__control-button--active' : ''}" id="watchlist" name="watchlist">Add to watchlist</button>
-            <button type="button" class="film-details__control-button film-details__control-button--watched ${userDetails.alreadyWatched ? 'film-details__control-button--active' : ''}" id="watched" name="watched">Already watched</button>
-            <button type="button" class="film-details__control-button film-details__control-button--favorite ${userDetails.favorite ? 'film-details__control-button--active' : ''}" id="favorite" name="favorite">Add to favorites</button>
+            <button
+            type="button"
+            class="film-details__control-button film-details__control-button--watchlist ${userDetails.watchList ? 'film-details__control-button--active' : ''}"
+            id="watchlist" name="watchlist">Add to watchlist</button>
+            <button
+            type="button"
+            class="film-details__control-button film-details__control-button--watched ${userDetails.alreadyWatched ? 'film-details__control-button--active' : ''}"
+            id="watched" name="watched">Already watched</button>
+            <button
+            type="button"
+            class="film-details__control-button film-details__control-button--favorite ${userDetails.favorite ? 'film-details__control-button--active' : ''}"
+            id="favorite" name="favorite">Add to favorites</button>
           </section>
         </div>
 
@@ -142,9 +156,12 @@ const createPopupTemplate = (data) => {
 };
 
 export default class Popup extends Smart {
-  constructor(film) {
+  constructor(film, commentsModel) {
     super();
     this._data = Popup.parseFormToData(film);
+    this._commentsModel = commentsModel;
+    this._comments = this._commentsModel.getComments()
+      .filter((comments) => this._data.comments.includes(comments.id));
 
     this._closePopupClickHandler = this._closePopupClickHandler.bind(this);
     this._watchlistClickHandler = this._watchlistClickHandler.bind(this);
@@ -159,7 +176,7 @@ export default class Popup extends Smart {
   }
 
   getTemplate() {
-    return createPopupTemplate(this._data);
+    return createPopupTemplate(this._data, this._comments);
   }
 
   reset(film) {

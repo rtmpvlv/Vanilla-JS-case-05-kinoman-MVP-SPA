@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 
 export const sortByDate = (film1, film2) => dayjs(film2.filmInfo.release.date).diff(dayjs(film1.filmInfo.release.date));
 export const sortByRating = (film1, film2) => film2.filmInfo.totalRating - film1.filmInfo.totalRating;
+export const sortByCommentsLength = (film1, film2) => film2.comments.length - film1.comments.length;
 export const calcWatchedMovies = (movies) => {
   const watchedMovies = movies.filter((movie) => movie.userDetails.alreadyWatched);
   const watched = watchedMovies.length;

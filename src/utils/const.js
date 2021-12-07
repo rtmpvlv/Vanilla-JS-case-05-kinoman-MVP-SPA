@@ -21,6 +21,8 @@ export const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
+  INIT: 'INIT',
+  ABORT: 'ABORT',
 };
 
 export const FilterType = {
@@ -33,4 +35,9 @@ export const FilterType = {
 export const MenuItem = {
   TABLE: 'table',
   STATS: 'stats',
+};
+
+export const APIDataType = {
+  MOVIES: 'movies',
+  COMMENTS: 'comments',
 };
