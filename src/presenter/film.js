@@ -10,6 +10,12 @@ const Mode = {
   POPUP: 'POPUP',
 };
 
+export const State = {
+  CHANGING: 'CHANGING',
+  DELETING: 'DELETING',
+  ABORTING: 'ABORTING',
+};
+
 export default class Film {
   constructor(filmContainer, changeData, changeMode, filterModel, commentsModel, api) {
     this._filmContainer = filmContainer;
@@ -30,43 +36,51 @@ export default class Film {
     this._handleWatchlistClick = this._handleWatchlistClick.bind(this);
     this._handleAsWatchedClick = this._handleAsWatchedClick.bind(this);
     this._handleFavoriteClick = this._handleFavoriteClick.bind(this);
-    this._handleCommentsChange = this._handleCommentsChange.bind(this);
+    this._handleCommentsAdd = this._handleCommentsAdd.bind(this);
+    this._handleCommentsDelete = this._handleCommentsDelete.bind(this);
   }
 
   renderFilmCard(film) {
     this._film = film;
-    const prevFilmCard = this._filmCard;
-    this._filmCard = new FilmCardView(film);
+    this._api.getComments(this._film)
+      .then((comments) => comments.forEach((comment) => this._commentsModel.setComment(comment)))
+      .then(() => {
+        const prevFilmCard = this._filmCard;
+        const prevPopup = this._popup;
+        this._filmCard = new FilmCardView(film);
+        this._filmCard.setOpenPopupClickHandler(this._openPopup);
+        this._filmCard.setWatchlistClickHandler(this._handleWatchlistClick);
+        this._filmCard.setAsWatchedClickHandler(this._handleAsWatchedClick);
+        this._filmCard.setFavoriteClickHandler(this._handleFavoriteClick);
 
-    this._filmCard.setOpenPopupClickHandler(this._openPopup);
-    this._filmCard.setWatchlistClickHandler(this._handleWatchlistClick);
-    this._filmCard.setAsWatchedClickHandler(this._handleAsWatchedClick);
-    this._filmCard.setFavoriteClickHandler(this._handleFavoriteClick);
+        this._popup = new PopupView(this._film, this._commentsModel);
+        this._popup.setClosePopupClickHandler(this._closePopup);
+        this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
+        this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
+        this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
+        this._popup.setAddCommentClickHandler(this._handleCommentsAdd);
+        this._popup.setDeleteCommentClickHandler(this._handleCommentsDelete);
 
-    if (prevFilmCard === null) {
-      render(this._filmContainer, this._filmCard);
-      return;
-    }
+        if (prevFilmCard === null || prevPopup === null) {
+          render(this._filmContainer, this._filmCard);
+          return;
+        }
 
-    replace(this._filmCard, prevFilmCard);
-    remove(prevFilmCard);
-
-    if (this._mode === Mode.POPUP) {
-      this._openPopup();
-    }
+        replace(this._filmCard, prevFilmCard);
+        replace(this._popup, prevPopup);
+        remove(prevFilmCard);
+        remove(prevPopup);
+      });
   }
 
   destroy() {
     remove(this._filmCard);
-    this._filmCard = null;
     remove(this._popup);
-    this._popup = null;
   }
 
   resetView() {
     if (this._mode !== Mode.FILM_CARD) {
       remove(this._popup);
-      this._popup = null;
       this._mode = Mode.FILM_CARD;
     }
   }
@@ -78,7 +92,6 @@ export default class Film {
       document.removeEventListener('keydown', this._keyPressed);
       this._mode = Mode.FILM_CARD;
       remove(this._popup);
-      this._popup = null;
     }
   }
 
@@ -86,31 +99,14 @@ export default class Film {
     document.body.classList.remove('hide-overflow');
     document.removeEventListener('keydown', this._keyPressed);
     remove(this._popup);
-    this._popup = null;
     this._mode = Mode.FILM_CARD;
   }
 
   _openPopup() {
     document.body.classList.add('hide-overflow');
     this._changeMode();
-    this._api.getComments(this._film)
-      .then((comments) => comments.forEach((comment) => this._commentsModel.setComment(comment)))
-      .then(() => {
-        const prevPopup = this._popup;
-        this._popup = new PopupView(this._film, this._commentsModel);
-        this._popup.setClosePopupClickHandler(this._closePopup);
-        this._popup.setWatchlistClickHandler(this._handleWatchlistClick);
-        this._popup.setAsWatchedClickHandler(this._handleAsWatchedClick);
-        this._popup.setFavoriteClickHandler(this._handleFavoriteClick);
-        this._popup.setDeleteCommentClickHandler(this._handleCommentsChange);
-        this._popup.setAddCommentClickHandler(this._handleCommentsChange);
-        if (prevPopup === null) {
-          render(document.body, this._popup);
-          return;
-        }
-        replace(this._popup, prevPopup);
-        remove(prevPopup);
-      });
+    render(document.body, this._popup);
+    this._popup.restoreHandlers();
     document.addEventListener('keydown', this._keyPressed);
     this._mode = Mode.POPUP;
   }
@@ -197,9 +193,24 @@ export default class Film {
     );
   }
 
-  _handleCommentsChange(film) {
+  _handleCommentsAdd(film) {
     this._changeData(
-      UserAction.CHANGE_COMMENTSLIST,
+      UserAction.ADD_COMMENT,
+      UpdateType.PATCH,
+      Object.assign(
+        {},
+        this._film,
+        {
+          comment: film.comment,
+        },
+      ),
+    );
+    delete this._film.comment;
+  }
+
+  _handleCommentsDelete(film) {
+    this._changeData(
+      UserAction.DELETE_COMMENT,
       UpdateType.PATCH,
       Object.assign(
         {},
@@ -207,7 +218,44 @@ export default class Film {
         {
           comments: film.comments,
         },
+        {
+          deletedCommentID: film.deletedCommentID,
+        },
       ),
     );
+    delete this._film.deletedCommentID;
+  }
+
+  setViewState(state) {
+    if (this._mode === Mode.FILM_CARD) {
+      return;
+    }
+
+    const resetFormState = () => {
+      this._popup.updateData({
+        isDisabled: false,
+        isDeleting: false,
+      });
+    };
+
+    switch (state) {
+      case State.CHANGING:
+        this._popup.updateData({
+          isDisabled: true,
+          isDeleting: false,
+        });
+        break;
+      case State.DELETING:
+        this._popup.updateData({
+          isDisabled: true,
+          isDeleting: true,
+        });
+        break;
+      case State.ABORTING:
+        this._popup.shake(resetFormState);
+        break;
+      default:
+        throw new Error('Unexpected point state.');
+    }
   }
 }

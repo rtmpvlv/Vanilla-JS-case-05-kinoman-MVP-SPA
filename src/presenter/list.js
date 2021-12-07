@@ -8,7 +8,7 @@ import ShowMoreButtonView from '../view/show-more-button';
 import ExtraFilmSectionView from '../view/extra-film-section';
 import LoadingView from '../view/loading';
 import { render, RenderPosition, remove } from '../utils/render';
-import Film from './film';
+import Film, { State } from './film';
 import {
   FilterType,
   SortType,
@@ -64,7 +64,6 @@ export default class FilmList {
       this._renderLoading();
       return;
     }
-
     this._renderSort();
     this._renderFilmSection();
 
@@ -261,13 +260,78 @@ export default class FilmList {
   _handleViewChange(actionType, updateType, update) {
     switch (actionType) {
       case UserAction.UPDATE_FILM:
+        if (this._filmPresenter.has(update.id)) {
+          this._filmPresenter.get(update.id).setViewState(State.CHANGING);
+        }
+        if (this._topRatedPresenter.has(update.id)) {
+          this._topRatedPresenter.get(update.id).setViewState(State.CHANGING);
+        }
+        if (this._mostCommentedPresenter.has(update.id)) {
+          this._mostCommentedPresenter.get(update.id).setViewState(State.CHANGING);
+        }
         this._api.updateMovie(update)
           .then((response) => {
             this._moviesModel.updateMovie(updateType, response);
+          })
+          .catch(() => {
+            if (this._filmPresenter.has(update.id)) {
+              this._filmPresenter.get(update.id).aborting();
+            }
+            if (this._topRatedPresenter.has(update.id)) {
+              this._topRatedPresenter.get(update.id).aborting();
+            }
+            if (this._mostCommentedPresenter.has(update.id)) {
+              this._mostCommentedPresenter.get(update.id).aborting();
+            }
           });
         break;
-      case UserAction.CHANGE_COMMENTSLIST:
-        this._commentsModel.updateCommentsList(updateType, update);
+      case UserAction.ADD_COMMENT:
+        if (this._filmPresenter.has(update.id)) {
+          this._filmPresenter.get(update.id).setViewState(State.CHANGING);
+        }
+        if (this._topRatedPresenter.has(update.id)) {
+          this._topRatedPresenter.get(update.id).setViewState(State.CHANGING);
+        }
+        if (this._mostCommentedPresenter.has(update.id)) {
+          this._mostCommentedPresenter.get(update.id).setViewState(State.CHANGING);
+        }
+        this._api.addComment(update)
+          .then((response) => this._moviesModel.updateMovie(updateType, response))
+          .catch(() => {
+            if (this._filmPresenter.has(update.id)) {
+              this._filmPresenter.get(update.id).setViewState(State.ABORTING);
+            }
+            if (this._topRatedPresenter.has(update.id)) {
+              this._topRatedPresenter.get(update.id).setViewState(State.ABORTING);
+            }
+            if (this._mostCommentedPresenter.has(update.id)) {
+              this._mostCommentedPresenter.get(update.id).setViewState(State.ABORTING);
+            }
+          });
+        break;
+      case UserAction.DELETE_COMMENT:
+        if (this._filmPresenter.has(update.id)) {
+          this._filmPresenter.get(update.id).setViewState(State.DELETING);
+        }
+        if (this._topRatedPresenter.has(update.id)) {
+          this._topRatedPresenter.get(update.id).setViewState(State.DELETING);
+        }
+        if (this._mostCommentedPresenter.has(update.id)) {
+          this._mostCommentedPresenter.get(update.id).setViewState(State.DELETING);
+        }
+        this._api.deleteComment(update)
+          .then(() => this._moviesModel.updateMovie(updateType, update))
+          .catch(() => {
+            if (this._filmPresenter.has(update.id)) {
+              this._filmPresenter.get(update.id).setViewState(State.ABORTING);
+            }
+            if (this._topRatedPresenter.has(update.id)) {
+              this._topRatedPresenter.get(update.id).setViewState(State.ABORTING);
+            }
+            if (this._mostCommentedPresenter.has(update.id)) {
+              this._mostCommentedPresenter.get(update.id).setViewState(State.ABORTING);
+            }
+          });
         break;
       default:
         throw new Error('Unexpected user\'s action.');

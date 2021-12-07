@@ -14,7 +14,8 @@ export const StatisticsSortType = {
 
 export const UserAction = {
   UPDATE_FILM: 'Update-film',
-  CHANGE_COMMENTSLIST: 'Change-comments',
+  ADD_COMMENT: 'Add-comment',
+  DELETE_COMMENT: 'Delete-comment',
 };
 
 export const UpdateType = {

@@ -14,15 +14,15 @@ export default class Comments extends AbstractObserver {
   setComment(comment) {
     const index = this._comments.findIndex((item) => item.id === comment.id);
 
-    if (index < 0) {
+    if (index === -1) {
       this._comments.push(comment);
       return;
     }
 
     this._comments = [
       ...this._comments.slice(0, index),
-      ...this._comments.slice(index + 1),
       comment,
+      ...this._comments.slice(index + 1),
     ];
   }
 
@@ -34,7 +34,7 @@ export default class Comments extends AbstractObserver {
     const index = this._comments.findIndex((comment) => comment.id === update.comments.id);
 
     if (index === -1) {
-      throw new Error('Can\'t update unexisting comment');
+      throw new Error('Unexpected comment.');
     }
 
     this._comments = [

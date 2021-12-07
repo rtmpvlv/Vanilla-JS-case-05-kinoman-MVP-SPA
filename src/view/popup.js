@@ -2,13 +2,19 @@
 /* eslint-disable no-underscore-dangle */
 import he from 'he';
 import dayjs from 'dayjs';
-import { Emotions, getRandomInteger } from '../mock-data/utils-and-const';
+import { Emotions } from '../mock-data/utils-and-const';
 import { render } from '../utils/render';
 import Smart from './smart';
 import { convertDuration, humanizeDate } from '../utils/popup';
 
 const createPopupTemplate = (data, commentsContent) => {
-  const { comments, filmInfo, userDetails } = data;
+  const {
+    comments,
+    filmInfo,
+    userDetails,
+    isDisabled,
+    isDeleting,
+  } = data;
 
   const createCommentsTemplate = () => {
     if (commentsContent.length === 0) {
@@ -26,7 +32,7 @@ const createPopupTemplate = (data, commentsContent) => {
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${comment.author}</span>
           <span class="film-details__comment-day">${humanizeDate(comment.date)}</span>
-          <button class="film-details__comment-delete"  id="${comment.id}">Delete</button>
+          <button class="film-details__comment-delete"  id="${comment.id}" ${isDisabled ? 'disabled' : ''}>${isDeleting ? 'Deleting...' : 'Delete'}</button>
         </p>
       </div>
     </li>`).join('');
@@ -103,15 +109,18 @@ const createPopupTemplate = (data, commentsContent) => {
             <button
             type="button"
             class="film-details__control-button film-details__control-button--watchlist ${userDetails.watchList ? 'film-details__control-button--active' : ''}"
-            id="watchlist" name="watchlist">Add to watchlist</button>
+            id="watchlist" name="watchlist"
+            ${isDisabled ? 'disabled' : ''}>Add to watchlist</button>
             <button
             type="button"
             class="film-details__control-button film-details__control-button--watched ${userDetails.alreadyWatched ? 'film-details__control-button--active' : ''}"
-            id="watched" name="watched">Already watched</button>
+            id="watched" name="watched"
+            ${isDisabled ? 'disabled' : ''}>Already watched</button>
             <button
             type="button"
             class="film-details__control-button film-details__control-button--favorite ${userDetails.favorite ? 'film-details__control-button--active' : ''}"
-            id="favorite" name="favorite">Add to favorites</button>
+            id="favorite" name="favorite"
+            ${isDisabled ? 'disabled' : ''}>Add to favorites</button>
           </section>
         </div>
 
@@ -123,7 +132,10 @@ const createPopupTemplate = (data, commentsContent) => {
               <div class="film-details__add-emoji-label"></div>
 
               <label class="film-details__comment-label">
-                <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
+                <textarea
+                class="film-details__comment-input"
+                placeholder="Select reaction below and write comment here"
+                name="comment" ${isDisabled ? 'disabled' : ''}></textarea>
               </label>
 
               <div class="film-details__emoji-list">
@@ -224,9 +236,11 @@ export default class Popup extends Smart {
   }
 
   _deleteCommentClickHandler(evt) {
-    evt.preventDefault();
-    this._deleteComment(evt);
-    this._callback.deleteCommentClick(Popup.parseDataToForm(this._data));
+    if (evt.target.tagName === 'BUTTON') {
+      evt.preventDefault();
+      this._deleteComment(evt);
+      this._callback.deleteCommentClick(Popup.parseDataToForm(this._data));
+    }
   }
 
   setDeleteCommentClickHandler(callback) {
@@ -238,20 +252,16 @@ export default class Popup extends Smart {
 
   _addCommentClickHandler(evt) {
     if (evt.ctrlKey && evt.keyCode === 13) {
-      const newComment = {
-        author: 'You',
-        comment: this._data.newComment,
-        id: getRandomInteger(1, 10000000),
-        date: new Date(),
-        emotion: this._data.emoji,
-      };
+      this.updateData({
+        comment: {
+          comment: this._data.newComment,
+          emotion: this._data.emoji,
+        },
+      });
 
       delete this._data.newComment;
       delete this._data.emoji;
 
-      this.updateData({
-        comments: [...this._data.comments, newComment],
-      });
       this._callback.addCommentClick(Popup.parseDataToForm(this._data));
     }
   }
@@ -283,11 +293,21 @@ export default class Popup extends Smart {
   }
 
   static parseFormToData(point) {
-    return Object.assign({}, point);
+    return Object.assign(
+      {},
+      point,
+      {
+        isDisabled: false,
+        isDeleting: false,
+      },
+    );
   }
 
   static parseDataToForm(data) {
-    return Object.assign({}, data);
+    const newData = Object.assign({}, data);
+    delete newData.isDisabled;
+    delete newData.isDeleting;
+    return newData;
   }
 
   setInnerHandlers() {
@@ -306,20 +326,18 @@ export default class Popup extends Smart {
   }
 
   _deleteComment(evt) {
-    if (evt.target.tagName === 'BUTTON') {
-      const pickedComment = Number(evt.target.id);
-      const index = this._data.comments.findIndex((item) => item.id === pickedComment);
-      if (index < 0) {
-        return;
-      }
-      this.updateData({
-        comments: [
-          ...this._data.comments.slice(0, index),
-          ...this._data.comments.slice(index + 1),
-        ],
-      });
-      this.getElement().scrollTo(0, this.getElement().scrollHeight);
+    const pickedCommentID = evt.target.id;
+    const index = this._data.comments.findIndex((item) => item === pickedCommentID);
+    if (index === -1) {
+      return;
     }
+    this.updateData({
+      comments: [
+        ...this._data.comments.slice(0, index),
+        ...this._data.comments.slice(index + 1),
+      ],
+      deletedCommentID: pickedCommentID,
+    });
   }
 
   _renderEmojiPic() {
@@ -328,6 +346,7 @@ export default class Popup extends Smart {
         this.updateData({
           emoji: item,
         }, true);
+
         const img = document.createElement('img');
         img.src = `./images/emoji/${item}.png`;
         img.style.width = '55px';
