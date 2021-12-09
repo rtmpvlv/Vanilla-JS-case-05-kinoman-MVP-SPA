@@ -275,13 +275,13 @@ export default class FilmList {
           })
           .catch(() => {
             if (this._filmPresenter.has(update.id)) {
-              this._filmPresenter.get(update.id).aborting();
+              this._filmPresenter.get(update.id).setViewState(State.ABORTING);
             }
             if (this._topRatedPresenter.has(update.id)) {
-              this._topRatedPresenter.get(update.id).aborting();
+              this._filmPresenter.get(update.id).setViewState(State.ABORTING);
             }
             if (this._mostCommentedPresenter.has(update.id)) {
-              this._mostCommentedPresenter.get(update.id).aborting();
+              this._filmPresenter.get(update.id).setViewState(State.ABORTING);
             }
           });
         break;

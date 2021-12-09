@@ -31,14 +31,10 @@ export const FilterType = {
   WATCHLIST: 'Watchlist',
   HISTORY: 'History',
   FAVORITES: 'Favorites',
+  STATS: 'stats',
 };
 
 export const MenuItem = {
   TABLE: 'table',
   STATS: 'stats',
-};
-
-export const APIDataType = {
-  MOVIES: 'movies',
-  COMMENTS: 'comments',
 };

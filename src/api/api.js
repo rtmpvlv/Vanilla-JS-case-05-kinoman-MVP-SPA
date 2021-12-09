@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-import MoviesModel from './model/movies';
+import MoviesModel from '../model/movies';
 
 const Method = {
   GET: 'GET',
@@ -19,8 +19,8 @@ export default class Api {
     this._authorization = authorization;
   }
 
-  getData(type) {
-    return this._load({ url: type })
+  getMovies() {
+    return this._load({ url: 'movies' })
       .then(Api.toJSON)
       .then((data) => data.map(MoviesModel.adaptToClient));
   }
@@ -57,6 +57,16 @@ export default class Api {
       url: `comments/${movie.deletedCommentID}`,
       method: Method.DELETE,
     });
+  }
+
+  sync(data) {
+    return this._load({
+      url: 'movies/sync',
+      method: Method.POST,
+      body: JSON.stringify(data),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    })
+      .then(Api.toJSON);
   }
 
   _load({

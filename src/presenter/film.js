@@ -4,6 +4,7 @@ import FilmCardView from '../view/film-card';
 import PopupView from '../view/popup';
 import { render, replace, remove } from '../utils/render';
 import { FilterType, UpdateType, UserAction } from '../utils/const';
+import toast from '../utils/toast';
 
 const Mode = {
   FILM_CARD: 'FILM_CARD',
@@ -111,7 +112,7 @@ export default class Film {
     this._mode = Mode.POPUP;
   }
 
-  _chooseFilterType(type) {
+  _getUpdateType(type) {
     return this._filterType === type
     && this._filterType !== FilterType.ALL
       ? UpdateType.MINOR : UpdateType.PATCH;
@@ -120,7 +121,7 @@ export default class Film {
   _handleWatchlistClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      this._chooseFilterType(FilterType.WATCHLIST),
+      this._getUpdateType(FilterType.WATCHLIST),
       Object.assign(
         {},
         this._film,
@@ -140,7 +141,7 @@ export default class Film {
     if (this._film.userDetails.alreadyWatched) {
       this._changeData(
         UserAction.UPDATE_FILM,
-        this._chooseFilterType(FilterType.HISTORY),
+        this._getUpdateType(FilterType.HISTORY),
         Object.assign(
           {},
           this._film,
@@ -158,7 +159,7 @@ export default class Film {
     }
     this._changeData(
       UserAction.UPDATE_FILM,
-      this._chooseFilterType(FilterType.HISTORY),
+      this._getUpdateType(FilterType.HISTORY),
       Object.assign(
         {},
         this._film,
@@ -177,7 +178,7 @@ export default class Film {
   _handleFavoriteClick() {
     this._changeData(
       UserAction.UPDATE_FILM,
-      this._chooseFilterType(FilterType.FAVORITES),
+      this._getUpdateType(FilterType.FAVORITES),
       Object.assign(
         {},
         this._film,
@@ -194,6 +195,10 @@ export default class Film {
   }
 
   _handleCommentsAdd(film) {
+    if (!window.navigator.onLine) {
+      toast('Can\'t add new comment offline.');
+    }
+
     this._changeData(
       UserAction.ADD_COMMENT,
       UpdateType.PATCH,
@@ -209,6 +214,10 @@ export default class Film {
   }
 
   _handleCommentsDelete(film) {
+    if (!window.navigator.onLine) {
+      toast('Can\'t delete comment offline.');
+    }
+
     this._changeData(
       UserAction.DELETE_COMMENT,
       UpdateType.PATCH,
